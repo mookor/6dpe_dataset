@@ -8,66 +8,6 @@ import math
 from ttag import add_object
 
 
-def get_rt_to_detal():
-    rt_detal_list = []
-    # rule 1 t5 - g3
-    rvec_to_detal = [0, 0, -90]
-    rvec_to_detal = np.array([r * math.pi / 180 for r in rvec_to_detal])
-    R_to_detal = eulerAnglesToRotationMatrix(rvec_to_detal)
-    # R_to_detal = np.array([0,-1,0,0,0,1,-1,0,0]).reshape(3,3)
-    tvec_to_detal = np.array([0.0235, -0.0675, -0.0175])
-    Rt_to_detal = np.hstack((R_to_detal, tvec_to_detal.reshape(3, 1)))
-    Rt_to_detal = np.vstack((Rt_to_detal, [0, 0, 0, 1]))
-
-    rt_detal_list.append(Rt_to_detal)
-
-    # rule 2 t5-g4
-    rvec_to_detal = [180, 0, -90]
-    rvec_to_detal = np.array([r * math.pi / 180 for r in rvec_to_detal])
-    R_to_detal = eulerAnglesToRotationMatrix(rvec_to_detal)
-    # R_to_detal = np.array([0,-1,0,0,0,1,-1,0,0]).reshape(3,3)
-    tvec_to_detal = np.array([-0.02, -0.0675, -0.0175])
-    Rt_to_detal = np.hstack((R_to_detal, tvec_to_detal.reshape(3, 1)))
-    Rt_to_detal = np.vstack((Rt_to_detal, [0, 0, 0, 1]))
-
-    rt_detal_list.append(Rt_to_detal)
-
-    # rule 3 t5-g3
-    rvec_to_detal = [90, 180, -90]
-    rvec_to_detal = np.array([r * math.pi / 180 for r in rvec_to_detal])
-    R_to_detal = eulerAnglesToRotationMatrix(rvec_to_detal)
-    # R_to_detal = np.array([0,-1,0,0,0,1,-1,0,0]).reshape(3,3)
-    tvec_to_detal = np.array([0.0175, -0.0675, -0.0235])
-    Rt_to_detal = np.hstack((R_to_detal, tvec_to_detal.reshape(3, 1)))
-    Rt_to_detal = np.vstack((Rt_to_detal, [0, 0, 0, 1]))
-
-    rt_detal_list.append(Rt_to_detal)
-
-    # rule 4 T5-g3
-    rvec_to_detal = [270, -35.8, 0]  # [180,180,35.8]                 #[-95,-180, 157.8]
-    rvec_to_detal = np.array([r * math.pi / 180 for r in rvec_to_detal])
-    R_to_detal = eulerAnglesToRotationMatrix(rvec_to_detal)
-    # R_to_detal = np.array([0,-1,0,0,0,1,-1,0,0]).reshape(3,3)
-    tvec_to_detal = np.array([0.0175, -0.05375, -0.0445665])
-    Rt_to_detal = np.hstack((R_to_detal, tvec_to_detal.reshape(3, 1)))
-    Rt_to_detal = np.vstack((Rt_to_detal, [0, 0, 0, 1]))
-
-    rt_detal_list.append(Rt_to_detal)
-
-    # rule 5 T5-G2
-    rvec_to_detal = [-283.234, 0, 90]
-    rvec_to_detal = np.array([r * math.pi / 180 for r in rvec_to_detal])
-    R_to_detal = eulerAnglesToRotationMatrix(rvec_to_detal)
-    # R_to_detal = np.array([0,-1,0,0,0,1,-1,0,0]).reshape(3,3)
-    tvec_to_detal = np.array([-0.0175, -0.069, -0.01055])
-    Rt_to_detal = np.hstack((R_to_detal, tvec_to_detal.reshape(3, 1)))
-    Rt_to_detal = np.vstack((Rt_to_detal, [0, 0, 0, 1]))
-
-    rt_detal_list.append(Rt_to_detal)
-
-    return rt_detal_list
-
-
 # Checks if a matrix is a valid rotation matrix.
 def isRotationMatrix(R):
     Rt = np.transpose(R)
