@@ -7,6 +7,7 @@ import codecs, json
 import math
 from ttag import add_object
 
+
 def get_rt_to_detal():
     rt_detal_list = []
     # rule 1 t5 - g3
@@ -188,22 +189,26 @@ def f32toHUE(image, min_depth, max_depth, width, height):
                 hue_img[j][i] = np.array([B, G, R])
 
     return hue_img
+
+
 def get_data(json_path):
-    
+
     with open(json_path) as json_file:
-        data  = json.load(json_file)
+        data = json.load(json_file)
         rules = {}
-        
+
         class_ids = []
         Rt_matrixes = []
-        for k,v in data.items():
+        for k, v in data.items():
             rule_list = []
             class_ids.append(k)
-            for rule,mat in v.items():
+            for rule, mat in v.items():
                 rule_list.append(rule)
                 Rt_matrixes.append(mat)
             rules[k] = rule_list
-    return class_ids,rules,data
+    return class_ids, rules, data
+
+
 pipeline = (
     rs.pipeline()
 )  # <- Объект pipeline содержит методы для взаимодействия с потоком
@@ -258,13 +263,14 @@ else:
     os.mkdir(dataset_dir)
 name = 0
 json_path = "/Users/andreymazko/Desktop/cam/vse/build/wrappers/python/dataset/rt_to_ojbects.json"
-class_ids,rules,data = get_data(json_path)
+class_ids, rules, data = get_data(json_path)
 class_id = class_ids[class_idx]
 rule = rules[class_id][rules_idx]
 Rt_to_detal = np.array(data[class_id[0]][rule])
 
 print(f"Съемка для {class_names[class_idx]}")
 print(f"Правило стыковки {rules[class_id][rules_idx]}")
+
 
 def format_name(name):
     name = str(name)
@@ -299,7 +305,6 @@ try:
             camera_params=camera_params,
             tag_size=0.06,
         )
-        
 
         if key == ord("i"):
             print()
@@ -319,11 +324,11 @@ try:
             print(f"Съемка для object_id {class_id}")
             print(f"Правило стыковки {rules[class_id][rules_idx]}")
             Rt_to_detal = np.array(data[class_id[0]][rule])
-            
+
         if key == ord("a"):
             try:
                 add_object(json_path)
-                class_ids,rules,data = get_data(json_path)
+                class_ids, rules, data = get_data(json_path)
             except Exception as e:
                 print(e)
         if key == ord("r"):
@@ -335,8 +340,7 @@ try:
             rule = rules[class_id][rules_idx]
             print(f"Съемка для object_id {class_id}")
             print(f"Правило стыковки {rule}")
-            
-            
+
             Rt_to_detal = np.array(data[class_id[0]][rule])
 
         if key == ord("o"):
@@ -358,7 +362,6 @@ try:
                     # pixel detal center
                     pixel = (points / points[-1])[:-1]
 
-                    
                     pixel = pixel.astype(int)
 
                     pose_t = resul_mat[:, 3:]
@@ -367,13 +370,15 @@ try:
                     pose_t = [t[0] * 1000 for t in pose_t]
                     R = []
                     R = cv2.Rodrigues(pose_R)[0]
-                    axis = np.float32([[0.1, 0, 0], [0, 0.1, 0], [0, 0, 0.1]]).reshape(-1, 3)
+                    axis = np.float32([[0.1, 0, 0], [0, 0.1, 0], [0, 0, 0.1]]).reshape(
+                        -1, 3
+                    )
                     imgpts, jac = cv2.projectPoints(axis, R, tvec_axis, m_int, None)
                     R = [r[0] * 180 / math.pi for r in R]
                     color_name = format_name(name) + "TAG.png"
                     color_path = os.path.join(dataset_dir, color_name)
                     cv2.imwrite(color_path, color_image)
-                    
+
                     js = {
                         "object": [
                             {
@@ -410,7 +415,7 @@ try:
                 IsTag = not IsTag
         if key == ord("s"):
             IsCheck = not IsCheck
-        if key == ord("t"):    # используется для отладки
+        if key == ord("t"):  # используется для отладки
             detection = result
             for detect in detection:
 
@@ -436,9 +441,9 @@ try:
                 # Tmat = m_int.dot(tag_to_detal)
                 Tmat = tag_to_detal
                 Point3D = np.array([0, 0, 0])
-                
+
                 # Point3D = deproject_pixel_to_point(depth_intrin,[detect.center[0], detect.center[1]],detect.pose_t[2])
-                
+
                 points = Tmat.dot(np.hstack((Point3D, 1.0)))
 
                 pixel = (points / points[-1])[:-1]
@@ -448,7 +453,9 @@ try:
 
                 R = []
                 R = cv2.Rodrigues(pose_R)[0]
-                axis = np.float32([[0.1, 0, 0], [0, 0.1, 0], [0, 0, 0.1]]).reshape(-1, 3)
+                axis = np.float32([[0.1, 0, 0], [0, 0.1, 0], [0, 0, 0.1]]).reshape(
+                    -1, 3
+                )
                 imgpts, jac = cv2.projectPoints(axis, R, pose_t, m_int, None)
                 cv2.circle(color_image, tuple(pixel), 3, (0, 255, 0), 8)
                 cv2.line(
@@ -460,7 +467,7 @@ try:
                 cv2.line(
                     color_image, tuple(pixel), tuple(imgpts[2].ravel()), (0, 0, 255), 5
                 )
-        
+
         if key == ord("w") and not IsTag:
             cv2.circle(color_image, tuple(pixel), 3, (255, 255, 0), 8)
             # DRAW
@@ -475,35 +482,94 @@ try:
             )
         # Show images
         if IsCheck:
-            cv2.rectangle(color_image,(0,0),(650,45),(0,255,100),-1)
-            cv2.rectangle(color_image,(1100,645),(1280,720),(0,255,100),-1)
-            cv2.putText(color_image,f"Class id: {class_id}",(1110,665),font,0.7,(255,0,0),1)
-            cv2.putText(color_image,f"rule {rule}",(1110,700),font,0.7,(255,0,0),1)
+            cv2.rectangle(color_image, (0, 0), (650, 45), (0, 255, 100), -1)
+            cv2.rectangle(color_image, (1100, 645), (1280, 720), (0, 255, 100), -1)
+            cv2.putText(
+                color_image,
+                f"Class id: {class_id}",
+                (1110, 665),
+                font,
+                0.7,
+                (255, 0, 0),
+                1,
+            )
+            cv2.putText(
+                color_image, f"rule {rule}", (1110, 700), font, 0.7, (255, 0, 0), 1
+            )
             if IsTag:
-            
+
                 if len(result) == 0:
-                    
-                    cv2.putText(color_image,"Тэг не найден",(15,20),font,0.7,(255,0,0),1)
+
+                    cv2.putText(
+                        color_image,
+                        "Тэг не найден",
+                        (15, 20),
+                        font,
+                        0.7,
+                        (255, 0, 0),
+                        1,
+                    )
                 else:
-                    cv2.putText(color_image,"Тэг найден",(15,20),font,0.7,(255,0,0),1)
-                    cv2.putText(color_image,"Нажмите 'O' чтобы рассчитать матрицу ",(15,40),font,0.7,(255,0,0),1)
+                    cv2.putText(
+                        color_image, "Тэг найден", (15, 20), font, 0.7, (255, 0, 0), 1
+                    )
+                    cv2.putText(
+                        color_image,
+                        "Нажмите 'O' чтобы рассчитать матрицу ",
+                        (15, 40),
+                        font,
+                        0.7,
+                        (255, 0, 0),
+                        1,
+                    )
             else:
                 if len(result) != 0:
-                    cv2.putText(color_image,f"Положите объект на тэг",(15,20),font,0.7,(255,0,0),1)
-                    cv2.putText(color_image,f"согласно правилу состыковки {rule}",(20,40),font,0.7,(255,0,0),1)
+                    cv2.putText(
+                        color_image,
+                        f"Положите объект на тэг",
+                        (15, 20),
+                        font,
+                        0.7,
+                        (255, 0, 0),
+                        1,
+                    )
+                    cv2.putText(
+                        color_image,
+                        f"согласно правилу состыковки {rule}",
+                        (20, 40),
+                        font,
+                        0.7,
+                        (255, 0, 0),
+                        1,
+                    )
                 else:
-                    cv2.putText(color_image,f"Убедитесь, что объект расположен правильно",(15,20),font,0.7,(255,0,0),1)
-                    cv2.putText(color_image,f"Нажмите 'O' чтобы сделать фото",(20,40),font,0.7,(255,0,0),1)
-            
+                    cv2.putText(
+                        color_image,
+                        f"Убедитесь, что объект расположен правильно",
+                        (15, 20),
+                        font,
+                        0.7,
+                        (255, 0, 0),
+                        1,
+                    )
+                    cv2.putText(
+                        color_image,
+                        f"Нажмите 'O' чтобы сделать фото",
+                        (20, 40),
+                        font,
+                        0.7,
+                        (255, 0, 0),
+                        1,
+                    )
+
         cv2.namedWindow("RealSense", cv2.WINDOW_AUTOSIZE)
         cv2.imshow("RealSense", color_image)
-        
 
         if key == ord("q"):
             break
     cv2.destroyAllWindows()
     cv2.waitKey(1)
 finally:
-    
+
     # Stop streaming
     pipeline.stop()
