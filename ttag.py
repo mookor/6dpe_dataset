@@ -3,11 +3,14 @@ import os
 import codecs, json
 import math
 
+
 class NumpyArrayEncoder(json.JSONEncoder):
-        def default(self, obj):
-            if isinstance(obj, np.ndarray):
-                return obj.tolist()
-            return json.JSONEncoder.default(self, obj)
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+
 # Calculates Rotation Matrix given euler angles.
 def eulerAnglesToRotationMatrix(theta):
 
@@ -39,15 +42,15 @@ def eulerAnglesToRotationMatrix(theta):
 
     return R
 
+
 def add_object(json_path):
     with open(json_path) as json_file:
-        data  = json.load(json_file)
-    
+        data = json.load(json_file)
+
     class_id = str(input("Введите Id нового объекта - "))
 
-    assert class_id not in list(data.keys()) , f"Объект class_id:{class_id} уже добавлен"
-        
-    
+    assert class_id not in list(data.keys()), f"Объект class_id:{class_id} уже добавлен"
+
     rule_count = int(input("Введите количество возможных положений объекта - "))
     rules = []
     rt_detal_list = []
@@ -59,12 +62,14 @@ def add_object(json_path):
         print("Введите смещение объекта по разным осям для текущего правила (в мм)")
         x_transpose = float(input("по оси X - "))
         y_transpose = float(input("по оси Y - "))
-        z_transpose= float(input("по оси Z  - "))
+        z_transpose = float(input("по оси Z  - "))
         print()
-        print("Введите вращение объекта вокруг разных осей для текущего правила (в градусах)")
+        print(
+            "Введите вращение объекта вокруг разных осей для текущего правила (в градусах)"
+        )
         x_rotate = float(input("Вокруг оси X - "))
         y_rotate = float(input("Вокруг оси Y - "))
-        z_rotate= float(input("Вокруг оси Z  - "))
+        z_rotate = float(input("Вокруг оси Z  - "))
 
         rvec_to_detal = [y_rotate, x_rotate, z_rotate]
         rvec_to_detal = np.array([r * math.pi / 180 for r in rvec_to_detal])
@@ -76,11 +81,11 @@ def add_object(json_path):
         rules_dict[rule] = Rt_to_detal
 
     data[class_id] = rules_dict
-    
+
     json.dump(
         data,
         codecs.open(json_path, "w", encoding="utf-8"),
         separators=(",", ":"),
-        indent=4,cls = NumpyArrayEncoder
+        indent=4,
+        cls=NumpyArrayEncoder,
     )
-    
