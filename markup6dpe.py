@@ -5,7 +5,7 @@ import cv2
 import os
 import codecs, json
 import math
-from ttag import add_object
+from updater import add_object
 
 
 def draw_cloud(img, points, Rt):
