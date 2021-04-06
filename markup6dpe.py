@@ -16,6 +16,10 @@ def draw_cloud(img, points, Rt):
         imgP.append(pixel)
     for p in imgP:
         cv2.circle(img, (int(p[0]), int(p[1])), 1, (255, 0, 0), -1)
+    """for i in range(len(imgP) - 1):
+        pt1 = ( int(imgP[i][0]), int(imgP[i][1]) )
+        pt2 = ( int(imgP[i+1][0]), int(imgP[i+1][1] ))
+        cv2.line(img,pt1,pt2,(0,0,255),1)"""
 
 
 def read_points(json_path):
