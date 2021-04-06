@@ -7,7 +7,29 @@ import codecs, json
 import math
 from ttag import add_object
 
+def draw_cloud(img,points,Rt):
+    imgP = []
+    for p in points:
+        P = (Rt.dot(np.hstack((p, 1.0))))
+        pixel = (P / P[-1])[:-1]
+        imgP.append(pixel)
+    for p in imgP:
+        cv2.circle(img,(int(p[0]),int(p[1])),1,(255,0,0),-1)
 
+def read_points(json_path):
+    with open(json_path) as json_file:
+        data = json.load(json_file)
+        points = data["points"]
+        pd3 = []
+        for p in points:
+            pd3.append([-p[0]/1000,p[1]/1000,p[2]/1000])
+    return pd3
+gubka = "/Users/andreymazko/Desktop/cam/vse/build/wrappers/python/gubka.json"
+privod = "/Users/andreymazko/Desktop/cam/vse/build/wrappers/python/CPY.json"
+g_points = read_points(gubka)
+privod_points = read_points(privod)
+detal2draw = [g_points,privod_points]
+detal2draw_idx = 0
 # Checks if a matrix is a valid rotation matrix.
 def isRotationMatrix(R):
     Rt = np.transpose(R)
@@ -190,12 +212,34 @@ class_names = [
     "ТРК Корпус",
 ]
 class_idx = 0
-# TO DO добавить правила для других объектов
 rules_idx = 0
 IsTag = True
 
+m_int = np.array([fx, 0, ppx, 0, fy, ppy, 0, 0, 1])
+
+
+
+
 work_dir = os.path.dirname(os.path.abspath(__file__))
 dataset_dir = os.path.join(work_dir, "dataset")
+
+js_int = {
+    "camera": [
+        {
+            "intrinsics": m_int.tolist() 
+        }
+    ]
+}
+json_name = "camera_params" ".json"
+json_path = os.path.join(dataset_dir, json_name)
+json.dump(
+    js_int,
+    codecs.open(json_path, "w", encoding="utf-8"),
+    separators=(",", ":"),
+    indent=4,
+)
+
+
 
 if os.path.exists(dataset_dir):
     pass
@@ -245,7 +289,11 @@ try:
             camera_params=camera_params,
             tag_size=0.06,
         )
-
+        if key == ord("e"):
+            detal2draw_idx+=1
+            if detal2draw_idx >= len(detal2draw):
+                detal2draw_idx =0
+            
         if key == ord("i"):
             print()
             print(f"Доступные объекты по id{class_ids}")
@@ -264,7 +312,9 @@ try:
             print(f"Съемка для object_id {class_id}")
             print(f"Правило стыковки {rules[class_id][rules_idx]}")
             Rt_to_detal = np.array(data[class_id[0]][rule])
-
+            detal2draw_idx+=1
+            if detal2draw_idx >= len(detal2draw):
+                detal2draw_idx =0
         if key == ord("a"):
             try:
                 add_object(json_path)
@@ -367,7 +417,6 @@ try:
                     depth_intrin, [detect.center[0], detect.center[1]], detect.pose_t[2]
                 )
 
-                print(detect.pose_t)
                 R_to_tag = detect.pose_R
                 t_to_tag = detect.pose_t
                 # R_to_tag = eulerAnglesToRotationMatrix(rvec)
@@ -391,13 +440,14 @@ try:
                 pose_t = resul_mat[:, 3:]
                 pose_R = resul_mat[:, :3]
 
+                draw_cloud(color_image,detal2draw[detal2draw_idx],Tmat)
                 R = []
                 R = cv2.Rodrigues(pose_R)[0]
                 axis = np.float32([[0.1, 0, 0], [0, 0.1, 0], [0, 0, 0.1]]).reshape(
                     -1, 3
                 )
                 imgpts, jac = cv2.projectPoints(axis, R, pose_t, m_int, None)
-                cv2.circle(color_image, tuple(pixel), 3, (0, 255, 0), 8)
+                """cv2.circle(color_image, tuple(pixel), 3, (0, 255, 0), 8)
                 cv2.line(
                     color_image, tuple(pixel), tuple(imgpts[0].ravel()), (255, 0, 0), 5
                 )
@@ -406,12 +456,16 @@ try:
                 )
                 cv2.line(
                     color_image, tuple(pixel), tuple(imgpts[2].ravel()), (0, 0, 255), 5
-                )
+                )"""
 
-        if key == ord("w") and not IsTag:
-            cv2.circle(color_image, tuple(pixel), 3, (255, 255, 0), 8)
+        if key == ord("w"):
+            try:
+                draw_cloud(color_image,detal2draw[detal2draw_idx],Tmat)
+            except:
+                passs
+            #cv2.circle(color_image, tuple(pixel), 3, (255, 255, 0), 8)
             # DRAW
-            cv2.line(
+            """cv2.line(
                 color_image, tuple(pixel), tuple(imgpts[0].ravel()), (255, 0, 0), 5
             )
             cv2.line(
@@ -419,7 +473,7 @@ try:
             )
             cv2.line(
                 color_image, tuple(pixel), tuple(imgpts[2].ravel()), (0, 0, 255), 5
-            )
+            )"""
         # Show images
         if IsCheck:
             cv2.rectangle(color_image, (0, 0), (650, 45), (0, 255, 100), -1)
